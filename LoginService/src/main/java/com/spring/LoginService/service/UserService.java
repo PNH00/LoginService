@@ -43,7 +43,8 @@ public class UserService {
         User user = userMapper.userDTOToUser(userDTO);
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        if(userRepository.findByEmail(user.getEmail()).isPresent())
+        if(userRepository.findByEmail(user.getEmail()).isPresent()
+                || userRepository.findByUserName(user.getUserName()).isPresent())
         {
             throw new AppValidateException(new AppResponse<>(
                     new Date(),
