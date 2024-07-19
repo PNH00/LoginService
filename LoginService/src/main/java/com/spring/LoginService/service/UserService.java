@@ -1,8 +1,10 @@
 package com.spring.LoginService.service;
 
 import com.spring.LoginService.constant.AppConstant;
+import com.spring.LoginService.dto.request.UserDTORequest;
 import com.spring.LoginService.dto.response.AppResponse;
-import com.spring.LoginService.dto.UserDTO;
+import com.spring.LoginService.dto.response.UserDTOResponse;
+import com.spring.LoginService.enums.Role;
 import com.spring.LoginService.exception.AppValidateException;
 import com.spring.LoginService.mapper.UserMapper;
 import com.spring.LoginService.repositories.UserRepository;
@@ -12,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 import com.spring.LoginService.entities.User;
@@ -28,21 +31,25 @@ public class UserService {
         this.userMapper = userMapper;
     }
 
-    public List<UserDTO> getUsers()
+    public List<UserDTOResponse> getUsers()
     {
-        return userMapper.userstoUserDTOs(userRepository.findAll());
+        return userMapper.userstoUserDTOResponses(userRepository.findAll());
     }
 
-    public UserDTO getUser(UUID id)
+    public UserDTOResponse getUser(UUID id)
     {
-        return userMapper.userToUserDTO(findUser(id));
+        return userMapper.userToUserDTOResponse(findUser(id));
     }
 
-    public UserDTO createUser(UserDTO userDTO)
+    public UserDTOResponse createUser(UserDTORequest userDTORequest)
     {
-        User user = userMapper.userDTOToUser(userDTO);
+        User user = userMapper.userDTORequestToUser(userDTORequest);
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        user.setPassword(passwordEncoder.encode(userDTORequest.getPassword()));
+
+        HashSet<String> roles = new HashSet<>();
+        roles.add(Role.USER.name());
+        user.setRoles(roles);
         if(userRepository.findByEmail(user.getEmail()).isPresent()
                 || userRepository.findByUserName(user.getUserName()).isPresent())
         {
@@ -56,8 +63,7 @@ public class UserService {
             ));
         } else{
             try{
-                userDTO = userMapper.userToUserDTO(userRepository.save(user));
-                return userDTO;
+                return userMapper.userToUserDTOResponse(userRepository.save(user));
             }catch (RuntimeException exception){
                 throw new AppValidateException(new AppResponse<>(
                         new Date(),
@@ -71,13 +77,16 @@ public class UserService {
         }
     }
 
-    public UserDTO updateUser(UUID id, UserDTO userDTO) {
+    public UserDTOResponse updateUser(UUID id, UserDTORequest userDTO) {
         User existingUser = findUser(id);
 
-        User user = userMapper.userDTOToUser(userDTO);
+        User user = userMapper.userDTORequestToUser(userDTO);
         user.setId(existingUser.getId());
         try {
-            return userMapper.userToUserDTO(userRepository.save(user));
+            HashSet<String> roles = new HashSet<>();
+            roles.add(Role.USER.name());
+            user.setRoles(roles);
+            return userMapper.userToUserDTOResponse(userRepository.save(user));
         } catch (RuntimeException exception) {
             throw new AppValidateException(new AppResponse<>(
                     new Date(),

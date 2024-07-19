@@ -1,8 +1,9 @@
 package com.spring.LoginService.controllers;
 
 import com.spring.LoginService.constant.AppConstant;
+import com.spring.LoginService.dto.request.UserDTORequest;
 import com.spring.LoginService.dto.response.AppResponse;
-import com.spring.LoginService.dto.UserDTO;
+import com.spring.LoginService.dto.response.UserDTOResponse;
 import com.spring.LoginService.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,7 +24,7 @@ public class UserController {
     }
 
     @PostMapping
-    public AppResponse<UserDTO> createUser(@RequestBody UserDTO userDTO)
+    public AppResponse<UserDTOResponse> createUser(@RequestBody UserDTORequest userDTORequest)
     {
         return new AppResponse<>(
                 new Date(),
@@ -31,12 +32,12 @@ public class UserController {
                 HttpStatus.CREATED.value(),
                 HttpStatus.CREATED.getReasonPhrase(),
                 AppConstant.CREATE_ACCOUNT_SUCCESSFULLY,
-                userService.createUser(userDTO)
+                userService.createUser(userDTORequest)
         );
     }
 
     @GetMapping
-    public AppResponse<List<UserDTO>> getUsers()
+    public AppResponse<List<UserDTOResponse>> getUsers()
     {
         return new AppResponse<>(
                 new Date(),
@@ -49,7 +50,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public AppResponse<UserDTO> getUser(@PathVariable UUID id)
+    public AppResponse<UserDTOResponse> getUser(@PathVariable UUID id)
     {
         return new AppResponse<>(
                 new Date(),
@@ -62,7 +63,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public AppResponse<UserDTO> updateUser(@PathVariable UUID id, @RequestBody UserDTO userDTO)
+    public AppResponse<UserDTOResponse> updateUser(@PathVariable UUID id, @RequestBody UserDTORequest userDTORequest)
     {
         return new AppResponse<>(
                 new Date(),
@@ -70,7 +71,7 @@ public class UserController {
                 HttpStatus.OK.value(),
                 HttpStatus.OK.getReasonPhrase(),
                 AppConstant.UPDATE_ACCOUNT_SUCCESSFULLY,
-                userService.updateUser(id,userDTO)
+                userService.updateUser(id,userDTORequest)
         );
     }
 
