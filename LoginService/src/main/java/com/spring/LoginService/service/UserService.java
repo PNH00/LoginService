@@ -8,6 +8,7 @@ import com.spring.LoginService.enums.Role;
 import com.spring.LoginService.exception.AppValidateException;
 import com.spring.LoginService.mapper.UserMapper;
 import com.spring.LoginService.repositories.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -20,16 +21,13 @@ import java.util.UUID;
 import com.spring.LoginService.entities.User;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
-    @Autowired
-    public UserService(UserRepository userRepository, UserMapper userMapper) {
-        this.userRepository = userRepository;
-        this.userMapper = userMapper;
-    }
 
     public List<UserDTOResponse> getUsers()
     {
@@ -44,7 +42,6 @@ public class UserService {
     public UserDTOResponse createUser(UserDTORequest userDTORequest)
     {
         User user = userMapper.userDTORequestToUser(userDTORequest);
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         user.setPassword(passwordEncoder.encode(userDTORequest.getPassword()));
 
         HashSet<String> roles = new HashSet<>();
@@ -77,11 +74,12 @@ public class UserService {
         }
     }
 
-    public UserDTOResponse updateUser(UUID id, UserDTORequest userDTO) {
+    public UserDTOResponse updateUser(UUID id, UserDTORequest userDTORequest) {
         User existingUser = findUser(id);
 
-        User user = userMapper.userDTORequestToUser(userDTO);
+        User user = userMapper.userDTORequestToUser(userDTORequest);
         user.setId(existingUser.getId());
+        user.setPassword(passwordEncoder.encode(userDTORequest.getPassword()));
         try {
             HashSet<String> roles = new HashSet<>();
             roles.add(Role.USER.name());
