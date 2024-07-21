@@ -5,13 +5,17 @@ import com.spring.LoginService.dto.request.UserDTORequest;
 import com.spring.LoginService.dto.response.AppResponse;
 import com.spring.LoginService.dto.response.UserDTOResponse;
 import com.spring.LoginService.service.UserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -39,6 +43,10 @@ public class UserController {
     @GetMapping
     public AppResponse<List<UserDTOResponse>> getUsers()
     {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("User name: {}", authentication.getName());
+        authentication.getAuthorities().forEach(grantedAuthority -> log.info(grantedAuthority.getAuthority()));
+
         return new AppResponse<>(
                 new Date(),
                 AppConstant.TRUE,
