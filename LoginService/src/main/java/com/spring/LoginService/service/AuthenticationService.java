@@ -11,6 +11,7 @@ import com.spring.LoginService.dto.response.AppResponse;
 import com.spring.LoginService.dto.request.AuthenticationRequest;
 import com.spring.LoginService.dto.response.AuthenticationResponse;
 import com.spring.LoginService.dto.response.IntrospectResponse;
+import com.spring.LoginService.entities.User;
 import com.spring.LoginService.exception.AppValidateException;
 import com.spring.LoginService.repositories.UserRepository;
 import lombok.experimental.NonFinal;
@@ -22,11 +23,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.StringJoiner;
 
 @Service
 public class AuthenticationService {
@@ -68,7 +71,15 @@ public class AuthenticationService {
                     AppConstant.GET_ACCOUNT_FAIL,
                     null
             ));
-        var token = genarateJwtToken(authenticationRequest.getUserName());
+        var token = genarateJwtToken(userRepository.findByUserName(authenticationRequest.getUserName()).orElseThrow(
+                () -> new AppValidateException(new AppResponse<>(
+                        new Date(),
+                        AppConstant.FAIL,
+                        HttpStatus.BAD_REQUEST.value(),
+                        HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                        AppConstant.GET_ACCOUNT_FAIL,
+                        null
+                ))));
 
         return AuthenticationResponse
                 .builder()
@@ -105,17 +116,17 @@ public class AuthenticationService {
     }
 
 
-    private String genarateJwtToken(String userName)
+    private String genarateJwtToken(User user)
     {
         JWSHeader jwsHeader = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(userName)
+                .subject(user.getUserName())
                 .issuer("test.com")
                 .issueTime(new Date())
                 .expirationTime(new Date(
                         Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
                 ))
-                .claim("testName","testValue")
+                .claim("scope",buildScope(user))
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -138,5 +149,13 @@ public class AuthenticationService {
                     )
             );
         }
+    }
+
+    private String buildScope(User user){
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        if(!CollectionUtils.isEmpty(user.getRoles())){
+            user.getRoles().forEach(stringJoiner::add);
+        }
+        return stringJoiner.toString();
     }
 }
