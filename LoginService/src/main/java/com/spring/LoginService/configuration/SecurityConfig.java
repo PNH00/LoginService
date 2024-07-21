@@ -7,6 +7,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
@@ -19,14 +21,16 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final List<String> PUBLIC_ENDPOINTS = Arrays.asList("/api/users","/api/auth/introspect","/api/auth/log-in");
+    private final List<String> PUBLIC_ENDPOINTS = Arrays.asList("/api/users",
+            "/api/auth/introspect",
+            "/api/auth/log-in");
     @Value("${jwt.signerKey}")
     private String signerKey;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(authorizationManagerRequestMatcherRegistry -> {
-           authorizationManagerRequestMatcherRegistry.requestMatchers(HttpMethod.POST,String.valueOf(PUBLIC_ENDPOINTS))
+           authorizationManagerRequestMatcherRegistry.requestMatchers(HttpMethod.POST,PUBLIC_ENDPOINTS.toArray(new String[0]))
                    .permitAll()
                    .anyRequest()
                    .authenticated();
@@ -48,6 +52,11 @@ public class SecurityConfig {
                 .withSecretKey(secretKeySpec)
                 .macAlgorithm(MacAlgorithm.HS512)
                 .build();
+    }
+
+    @Bean
+    PasswordEncoder passwordEncoder(){
+        return new BCryptPasswordEncoder(10);
     }
 
 }

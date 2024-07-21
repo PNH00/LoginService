@@ -1,18 +1,19 @@
-package com.spring.LoginService.dto;
+package com.spring.LoginService.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDTO {
+public class UserDTOResponse {
 
     private UUID id;
     private String email;
     private String userName;
-    private String password;
+    private Set<String> roles;
 }
