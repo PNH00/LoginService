@@ -9,8 +9,8 @@ import com.spring.LoginService.dto.response.AppResponse;
 @ControllerAdvice
 public class GlobalExceptionHandler extends RuntimeException {
     @ExceptionHandler(AppValidateException.class)
-    public ResponseEntity<AppResponse> handleMenuValidationException(AppValidateException ex) {
-        AppResponse appResponse = ex.getAppResponse();
+    public ResponseEntity<AppResponse<Object>> handleMenuValidationException(AppValidateException ex) {
+        AppResponse<Object> appResponse = ex.getAppResponse();
         return new ResponseEntity<>(appResponse, HttpStatus.valueOf(appResponse.getCode()));
     }
 }
